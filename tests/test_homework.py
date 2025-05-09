@@ -1,17 +1,36 @@
 """Grading"""
 
-Se empaqueta el experimento en una imagen de Docker completa.
-En este punto el unico problema latente es centralizar los 
-resultados de las corridas en un solo lugar (disco de red o
-almacenamiento en la nube).
+import os
+import subprocess
+import warnings
 
-$ docker build -t jdvelasq/mlflow:example .
-
+warnings.filterwarnings("ignore")
 
 
-Cree un disco o folder externo para ejecutar el experimento.
-Debe copiar unicamente el archivo MLproject
+def test_01():
 
-$ mlflow run --env-manager=local -e knn -P n_neighbors=1 .
-$ mlflow run --env-manager=local -e knn -P n_neighbors=2 .
-$ mlflow run --env-manager=local -e elasticnet -P alpha=0.5 -P l1_ratio=0.5 .
+    # Test if the homework script runs without errors
+    try:
+        for entry_point in ["elasticnet", "knn"]:
+            subprocess.run(
+                [
+                    "mlflow",
+                    "run",
+                    "--env-manager=local",
+                    "-e",
+                    entry_point,
+                    ".",
+                ],
+                check=True,
+            )
+    except subprocess.CalledProcessError as e:
+        raise Exception(f"Error running the homework script: {e}")
+
+    # Ensure the mlruns directory exists
+    assert os.path.exists("mlruns"), "mlruns directory does not exist."
+
+    # Check if there are any experiments saved in mlruns/
+    experiments = [
+        d for d in os.listdir("mlruns") if os.path.isdir(os.path.join("mlruns", d))
+    ]
+    assert len(experiments) > 0, "No experiments found in mlruns directory."
